@@ -3,11 +3,12 @@
 		"_postman_id": "a1d902af-2d08-4183-8d30-8b1d7283e3b6",
 		"name": "biosamples-api-tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "6188426"
+		"_exporter_id": "6188426",
+		"_collection_link": "https://grey-desert-23006.postman.co/workspace/EBI~1e307064-594f-4ac7-ba24-f9c964233d7e/collection/6188426-a1d902af-2d08-4183-8d30-8b1d7283e3b6?action=share&source=collection_link&creator=6188426"
 	},
 	"item": [
 		{
-			"name": "submit-sample",
+			"name": "submit-sample-default-checklist",
 			"item": [
 				{
 					"name": "get-auth-token",
@@ -20,10 +21,21 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"var response = responseBody;",
-									"postman.setEnvironmentVariable(\"JWT\", response);"
+									"var response = pm.response.text();",
+									"pm.collectionVariables.set(\"jwt\", response);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -40,9 +52,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{webin}}/ena/submit/webin/auth/token",
+							"raw": "{{WEBIN_URL}}/ena/submit/webin/auth/token",
 							"host": [
-								"{{webin}}"
+								"{{WEBIN_URL}}"
 							],
 							"path": [
 								"ena",
@@ -71,7 +83,8 @@
 									"    pm.expect(jsonData.characteristics.description[0].text).to.eql(\"fake sample\");",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -81,7 +94,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{JWT}}",
+									"value": "{{jwt}}",
 									"type": "string"
 								}
 							]
@@ -98,9 +111,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{biosamples}}/samples",
+							"raw": "{{BIOSAMPLES_URL}}/samples",
 							"host": [
-								"{{biosamples}}"
+								"{{BIOSAMPLES_URL}}"
 							],
 							"path": [
 								"samples"
@@ -110,6 +123,688 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "submit-sample-ena-checklist",
+			"item": [
+				{
+					"name": "get-auth-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var response = pm.response.text();",
+									"pm.collectionVariables.set(\"jwt\", response);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{WEBIN_URL}}/ena/submit/webin/auth/token",
+							"host": [
+								"{{WEBIN_URL}}"
+							],
+							"path": [
+								"ena",
+								"submit",
+								"webin",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "submit-sample",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Sample description is fake sample\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.characteristics.description[0].text).to.eql(\"fungal ITS1\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set('randomNumber', Math.floor(Math.random() * 1000));",
+									"pm.collectionVariables.set('sampleName', \"api_test_sample_\" + Math.floor(Math.random() * 1000));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\" : \"{{sampleName}}\",\n  \"webinSubmissionAccountId\" : \"{{WEBIN_USER}}\",\n  \"taxId\" : 256318,\n  \"release\" : \"2021-04-20T00:32:19Z\",\n  \"characteristics\" : {\n    \"ENA first public\" : [ {\n      \"text\" : \"2021-04-20\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"ENA last update\" : [ {\n      \"text\" : \"2021-04-19\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"ENA-CHECKLIST\" : [ {\n      \"text\" : \"ERC000022\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"External Id\" : [ {\n      \"text\" : \"SAMEA012345\",\n      \"tag\" : \"Namespace:BioSample\"\n    } ],\n    \"INSDC center alias\" : [ {\n      \"text\" : \"Barta\"\n    } ],\n    \"INSDC center name\" : [ {\n      \"text\" : \"Barta\"\n    } ],\n    \"INSDC first public\" : [ {\n      \"text\" : \"2021-04-20T00:32:19Z\"\n    } ],\n    \"INSDC last update\" : [ {\n      \"text\" : \"2021-04-19T14:38:29Z\"\n    } ],\n    \"INSDC status\" : [ {\n      \"text\" : \"public\"\n    } ],\n    \"Submitter Id\" : [ {\n      \"text\" : \"fun.nac371\",\n      \"tag\" : \"Namespace:Barta\"\n    } ],\n    \"collection date\" : [ {\n      \"text\" : \"2013\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"description\" : [ {\n      \"text\" : \"fungal ITS1\"\n    } ],\n    \"environment (biome)\" : [ {\n      \"text\" : \"spruce biome\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"environment (feature)\" : [ {\n      \"text\" : \"spruce forest\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"environment (material)\" : [ {\n      \"text\" : \"soil\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"geographic location (country and/or sea)\" : [ {\n      \"text\" : \"Czech Republic\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"geographic location (depth)\" : [ {\n      \"text\" : \"0.1\",\n      \"unit\" : \"m\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"geographic location (elevation)\" : [ {\n      \"text\" : \"784\",\n      \"unit\" : \"m\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"geographic location (latitude)\" : [ {\n      \"text\" : \"50.590556\",\n      \"unit\" : \"DD\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"geographic location (longitude)\" : [ {\n      \"text\" : \"13.253889\",\n      \"unit\" : \"DD\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"investigation type\" : [ {\n      \"text\" : \"metagenome\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"organism\" : [ {\n      \"text\" : \"metagenome\",\n      \"ontologyTerms\" : [ \"http://purl.obolibrary.org/obo/NCBITaxon_256318\" ]\n    } ],\n    \"project name\" : [ {\n      \"text\" : \"Nacetin13\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"sequencing method\" : [ {\n      \"text\" : \"Illumina MiSeq\",\n      \"ontologyTerms\" : [ \"http://www.ebi.ac.uk/efo/EFO_0004205\" ],\n      \"tag\" : \"attribute\"\n    } ],\n    \"soil environmental package\" : [ {\n      \"text\" : \"soil\",\n      \"tag\" : \"attribute\"\n    } ],\n    \"title\" : [ {\n      \"text\" : \"API test sample\"\n    } ]\n  },\n  \"externalReferences\" : [ {\n    \"url\" : \"https://www.ebi.ac.uk/ena/browser/view/SAMEA012345\",\n    \"duo\" : [ ]\n  } ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BIOSAMPLES_URL}}/samples",
+							"host": [
+								"{{BIOSAMPLES_URL}}"
+							],
+							"path": [
+								"samples"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "submit-sample-incomplete-checklist-attributes",
+			"item": [
+				{
+					"name": "get-auth-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var response = pm.response.text();",
+									"pm.collectionVariables.set(\"jwt\", response);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{WEBIN_URL}}/ena/submit/webin/auth/token",
+							"host": [
+								"{{WEBIN_URL}}"
+							],
+							"path": [
+								"ena",
+								"submit",
+								"webin",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "submit-sample",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Sample description is fake sample\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.characteristics.description[0].text).to.eql(\"fake sample\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"FakeSample1\",\n    \"update\": \"2012-03-19T13:56:40.720567Z\",\n    \"release\": \"2020-03-10T13:56:40.720559Z\",\n    \"webinSubmissionAccountId\": \"{{WEBIN_USER}}\",\n    \"characteristics\": {\n        \"description\": [\n            {\n                \"text\": \"fake sample\"\n            }\n        ],\n        \"checklist\": [\n            {\n                \"text\": \"ERC000011\"\n            }\n        ],\n        \"collection_date\": [\n            {\n                \"text\": \"not provided\"\n            }\n        ],\n        \"geographic location (country and/or sea)\": [\n            {\n                \"text\": \"Thailand\"\n            }\n        ],\n        \"organism\": [\n            {\n                \"text\": \"Homo sapiens\",\n                \"ontologyTerms\": [\n                    \"http://purl.obolibrary.org/obo/NCBITaxon_9606\"\n                ]\n            }\n        ]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BIOSAMPLES_URL}}/samples",
+							"host": [
+								"{{BIOSAMPLES_URL}}"
+							],
+							"path": [
+								"samples"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "biovalidator",
+			"item": [
+				{
+					"name": "validate-bsd-minimal",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Empyt array on successful validation\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"[]\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schema\": {\n        \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n        \"$id\": \"https://www.ebi.ac.uk/biosamples/schemas/biosamples-minimal/test_version\",\n        \"additionalProperties\": true,\n        \"definitions\": {\n            \"nonEmptyString\": {\n                \"type\": \"string\",\n                \"minLength\": 1\n            }\n        },\n        \"required\": [\n            \"name\",\n            \"characteristics\"\n        ],\n        \"title\": \"sample\",\n        \"type\": \"object\",\n        \"properties\": {\n            \"name\": {\n                \"type\": \"string\"\n            },\n            \"accession\": {\n                \"type\": \"string\"\n            },\n            \"characteristics\": {\n                \"type\": \"object\",\n                \"anyOf\": [\n                    {\n                        \"required\": [\n                            \"organism\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"Organism\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"species\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"Species\"\n                        ]\n                    }\n                ],\n                \"properties\": {\n                    \"organism\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"Organism\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"Species\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"species\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    }\n                }\n            }\n        }\n    },\n    \"data\": {\n        \"name\": \"FakeSample1\",\n        \"update\": \"2012-03-19T13:56:40.720567Z\",\n        \"release\": \"2020-03-10T13:56:40.720559Z\",\n        \"webinSubmissionAccountId\": \"Webin-59287\",\n        \"characteristics\": {\n            \"description\": [\n                {\n                    \"text\": \"fake sample\"\n                }\n            ],\n            \"organism\": [\n                {\n                    \"text\": \"Homo sapiens\",\n                    \"ontologyTerms\": [\n                        \"http://purl.obolibrary.org/obo/NCBITaxon_9606\"\n                    ]\n                }\n            ]\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BIOVALIDATOR_URL}}/validate",
+							"host": [
+								"{{BIOVALIDATOR_URL}}"
+							],
+							"path": [
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "validate-bsd-minimal-error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Validation error with invalid data\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"must have required property 'organism'\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schema\": {\n        \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n        \"$id\": \"https://www.ebi.ac.uk/biosamples/schemas/biosamples-minimal/test_error\",\n        \"additionalProperties\": true,\n        \"definitions\": {\n            \"nonEmptyString\": {\n                \"type\": \"string\",\n                \"minLength\": 1\n            }\n        },\n        \"required\": [\n            \"name\",\n            \"characteristics\"\n        ],\n        \"title\": \"sample\",\n        \"type\": \"object\",\n        \"properties\": {\n            \"name\": {\n                \"type\": \"string\"\n            },\n            \"accession\": {\n                \"type\": \"string\"\n            },\n            \"characteristics\": {\n                \"type\": \"object\",\n                \"anyOf\": [\n                    {\n                        \"required\": [\n                            \"organism\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"Organism\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"species\"\n                        ]\n                    },\n                    {\n                        \"required\": [\n                            \"Species\"\n                        ]\n                    }\n                ],\n                \"properties\": {\n                    \"organism\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"Organism\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"Species\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    },\n                    \"species\": {\n                        \"type\": \"array\",\n                        \"items\": {\n                            \"properties\": {\n                                \"text\": {\n                                    \"$ref\": \"#/definitions/nonEmptyString\"\n                                }\n                            },\n                            \"required\": [\n                                \"text\"\n                            ]\n                        }\n                    }\n                }\n            }\n        }\n    },\n    \"data\": {\n        \"name\": \"FakeSample1\",\n        \"update\": \"2012-03-19T13:56:40.720567Z\",\n        \"release\": \"2020-03-10T13:56:40.720559Z\",\n        \"webinSubmissionAccountId\": \"Webin-59287\",\n        \"characteristics\": {\n            \"description\": [\n                {\n                    \"text\": \"fake sample\"\n                }\n            ]\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BIOVALIDATOR_URL}}/validate",
+							"host": [
+								"{{BIOVALIDATOR_URL}}"
+							],
+							"path": [
+								"validate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "edit-field-and-checklist",
+			"item": [
+				{
+					"name": "get-auth-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var response = pm.response.text();",
+									"pm.collectionVariables.set(\"jwt\", response);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{WEBIN_URL}}/ena/submit/webin/auth/token",
+							"host": [
+								"{{WEBIN_URL}}"
+							],
+							"path": [
+								"ena",
+								"submit",
+								"webin",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Field correctly populated\", function () {",
+									"    var responseJson = pm.response.json();",
+									"    var name = responseJson.name;",
+									"    name.includes(\"api_test_field\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('randomNumber', Math.floor(Math.random() * 1000));",
+									"pm.globals.set('fieldName', \"api_test_field_\" + Math.floor(Math.random() * 1000));",
+									"// {{$randomUUID}} {{$guid}}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"label\": \"{{fieldName}}\",\n    \"description\": \"api test field\",\n    \"group\": \"6788e29b171e6436486fa685\",\n    \"type\": \"text\",\n    \"units\": [\"m\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SCHEMA_STORE_URL}}/api/v2/fields",
+							"host": [
+								"{{SCHEMA_STORE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"fields"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-checklist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var accession = jsonData.accession;",
+									"pm.environment.set(\"checklist_accession\", accession);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"API test checklist {{randomNumber}}\",\n  \"description\": \"Checklist created for API testing\",\n  \"metaSchema\": \"https://schemablocks.org/metaschemas/json-schema-draft-07/1.0.1\",\n  \"name\": \"API test checklist  {{randomNumber}}\",\n  \"authority\": \"ENA\",\n  \"schemaFieldAssociations\": [\n    {\n      \"fieldId\": \"{{fieldName}}:1.0\",\n      \"requirementType\": \"OPTIONAL\",\n      \"multiplicity\": \"Single\"\n    }\n  ],\n  \"lastModifiedDate\": \"2024-12-02T19:58:37.853\",\n  \"group\": \"Other Checklists\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SCHEMA_STORE_URL}}/api/v2/mongoJsonSchemas",
+							"host": [
+								"{{SCHEMA_STORE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"mongoJsonSchemas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update-field",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Field correctly populated\", function () {",
+									"    var responseJson = pm.response.json();",
+									"    var label = responseJson.label;",
+									"    label.includes(\"api_test_field\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('randomNumber', Math.floor(Math.random() * 1000));",
+									"// {{$randomUUID}} {{$guid}}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{fieldName}}\",\n    \"label\": \"{{fieldName}}\",\n    \"version\": \"1.0\",\n    \"description\": \"api test field updated\",\n    \"group\": \"6788e29b171e6436486fa685\",\n    \"type\": \"text\",\n    \"units\": [\"m\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SCHEMA_STORE_URL}}/api/v2/fields/{{fieldName}}:1.0",
+							"host": [
+								"{{SCHEMA_STORE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"fields",
+								"{{fieldName}}:1.0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-checklist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"get checklist with correct version\", function () {",
+									"    var responseJson = pm.response.json();",
+									"    pm.expect(responseJson.version).to.eql(\"1.1\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SCHEMA_STORE_URL}}/registry/schemas/{{checklist_accession}}",
+							"host": [
+								"{{SCHEMA_STORE_URL}}"
+							],
+							"path": [
+								"registry",
+								"schemas",
+								"{{checklist_accession}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{jwt}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "randomNumber",
+			"value": ""
+		},
+		{
+			"key": "sampleName",
+			"value": ""
+		},
+		{
+			"key": "jwt",
+			"value": ""
 		}
 	]
 }
