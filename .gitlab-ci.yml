@@ -42,8 +42,6 @@ postman-test-service:
        --env-var "WEBIN_USER=$WEBIN_USER" \
        --env-var "WEBIN_PASS=$WEBIN_PASS" \
        --folder "$FOLDER"
-  only:
-    - main
   rules:
     - if '$TRIGGER_SERVICE="true"'
 
