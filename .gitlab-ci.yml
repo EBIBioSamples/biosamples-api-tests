@@ -4,7 +4,7 @@ variables:
 stages:
   - test
 
-postman-tests:
+postman-tests-all:
   stage: test
   image:
     name: postman/newman
@@ -14,4 +14,36 @@ postman-tests:
     - newman run biosamples-api-tests.postman_collection.json --environment wwwint.postman_environment.json --env-var "WEBIN_USER=$WEBIN_USER" --env-var "WEBIN_PASS=$WEBIN_PASS"
   only:
     - main
+
+postman-tests-biovalidator:
+  stage: test
+  image:
+    name: postman/newman
+    entrypoint: [ "/bin/sh", "-c" ]
+  script:
+    - |
+        newman run biosamples-api-tests.postman_collection.json \
+        --environment wwwint.postman_environment.json \
+        --env-var "WEBIN_USER=$WEBIN_USER" \
+        --env-var "WEBIN_PASS=$WEBIN_PASS" \
+        --folder biovalidator
+  only:
+  - main
+
+postman-test-service:
+  stage: test
+  image:
+    name: postman/newman
+    entrypoint: [ "/bin/sh", "-c" ]
+  script:
+    -|
+       newman run biosamples-api-tests.postman_collection.json \
+       --environment "$BSD_ENV".postman_environment.json \
+       --env-var "WEBIN_USER=$WEBIN_USER" \
+       --env-var "WEBIN_PASS=$WEBIN_PASS" \
+       --folder "$FOLDER"
+  only:
+    - main
+  rules:
+    - if '$TRIGGER_SERVICE="true"'
 
