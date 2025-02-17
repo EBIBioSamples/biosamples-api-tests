@@ -11,7 +11,7 @@ postman-tests-all:
     entrypoint: [ "/bin/sh", "-c" ]
   script:
     - newman --version
-    - newman run biosamples-api-tests.postman_collection.json --environment wwwint.postman_environment.json --env-var "WEBIN_USER=$WEBIN_USER" --env-var "WEBIN_PASS=$WEBIN_PASS"
+    - newman run biosamples-api-tests.postman_collection.json --environment wwwint.postman_environment.json --env-var "WEBIN_USER=$WEBIN_USER" --env-var "vault:WEBIN_PASS=$WEBIN_PASS"
   rules:
     - if: '$TRIGGER_SERVICE == "false" || $CI_COMMIT_BRANCH == "main"'
 
