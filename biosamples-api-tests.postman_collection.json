@@ -239,7 +239,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
+									"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{vault:WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -357,7 +357,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
+									"raw": "{\n  \"authRealms\":[\"ENA\"],\n  \"password\":\"{{vault:WEBIN_PASS}}\",\n  \"username\":\"{{WEBIN_USER}}\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
