@@ -1,3 +1,5 @@
 .idea
 local_commands.md
 test_sample.json
+newman-report.xml
+newman-report.html
